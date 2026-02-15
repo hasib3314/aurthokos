@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="aurthokos"
+        android:label="Orthokosh"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

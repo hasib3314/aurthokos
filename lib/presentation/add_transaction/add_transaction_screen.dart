@@ -9,12 +9,22 @@ import '../../data/models/transaction_model.dart';
 import 'add_transaction_viewmodel.dart';
 
 class AddTransactionScreen extends StatelessWidget {
-  const AddTransactionScreen({super.key});
+  final TransactionType initialType;
+  final TransactionModel? existingTransaction;
+
+  const AddTransactionScreen({
+    super.key,
+    this.initialType = TransactionType.earn,
+    this.existingTransaction,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AddTransactionViewModel(),
+      create: (_) => AddTransactionViewModel(
+        initialType: initialType,
+        existingTransaction: existingTransaction,
+      ),
       child: const _AddTransactionBody(),
     );
   }
@@ -61,6 +71,7 @@ class _AddTransactionBody extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final vm = context.read<AddTransactionViewModel>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -71,7 +82,7 @@ class _AddTransactionBody extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Text(
-            'Add Transaction',
+            vm.isEditMode ? 'Edit Transaction' : 'Add Transaction',
             style: context.textTheme.headlineMedium,
           ),
         ],
@@ -482,9 +493,9 @@ class _AddTransactionBody extends StatelessWidget {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
-                    'Save Transaction',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                : Text(
+                    vm.isEditMode ? 'Update Transaction' : 'Save Transaction',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
           ),
         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 
 class AppTheme {
@@ -16,8 +15,7 @@ class AppTheme {
         surface: AppColors.bgMedium,
         error: Color(0xFFEF4444),
       ),
-      textTheme: GoogleFonts.poppinsTextTheme(
-        const TextTheme(
+      textTheme: const TextTheme(
           displayLarge: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -66,7 +64,6 @@ class AppTheme {
             color: AppColors.textPrimary,
           ),
         ),
-      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,

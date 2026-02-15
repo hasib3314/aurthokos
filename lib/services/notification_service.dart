@@ -31,8 +31,8 @@ class NotificationService {
     required String body,
   }) async {
     const androidDetails = AndroidNotificationDetails(
-      'arthokosh_channel',
-      'Arthokosh Notifications',
+      'orthokosh_channel',
+      'Orthokosh Notifications',
       channelDescription: 'Finance alerts and reminders',
       importance: Importance.high,
       priority: Priority.high,

@@ -105,19 +105,13 @@ class _DashboardScreenState extends State<DashboardScreen>
       backgroundColor: Colors.transparent,
       title: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: AppColors.goldAccentGradient,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              '৳',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              'images/Orthokosh.png',
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
             ),
           ),
           const SizedBox(width: 12),
@@ -468,6 +462,47 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
+  Future<bool> _showDeleteConfirmation(TransactionModel t) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgMedium,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Delete Transaction?',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${t.title}"?\nThis action cannot be undone.',
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textMuted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  void _openEditScreen(TransactionModel transaction, DashboardViewModel vm) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddTransactionScreen(
+          existingTransaction: transaction,
+        ),
+      ),
+    ).then((_) => vm.loadDashboard());
+  }
+
   Widget _buildTransactionTile(
       TransactionModel transaction, DashboardViewModel vm) {
     final isIncome = transaction.type == TransactionType.earn ||
@@ -478,6 +513,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Dismissible(
       key: Key(transaction.id),
       direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _showDeleteConfirmation(transaction),
+      onDismissed: (_) => vm.deleteTransaction(transaction.id),
       background: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
@@ -488,10 +525,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete_outline, color: Colors.red),
       ),
-      onDismissed: (_) => vm.deleteTransaction(transaction.id),
       child: GlassmorphicCard(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         borderRadius: 16,
+        onTap: () => _openEditScreen(transaction, vm),
         child: Row(
           children: [
             Container(
@@ -528,13 +565,41 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ],
               ),
             ),
-            Text(
-              '${isIncome ? '+' : '-'}${CurrencyConverter.format(transaction.amount, transaction.currency)}',
-              style: TextStyle(
-                color: isIncome ? AppColors.earnColor : AppColors.expenseColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${isIncome ? '+' : '-'}${CurrencyConverter.format(transaction.amount, transaction.currency)}',
+                  style: TextStyle(
+                    color: isIncome
+                        ? AppColors.earnColor
+                        : AppColors.expenseColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _openEditScreen(transaction, vm),
+                      child: const Icon(Icons.edit_outlined,
+                          color: AppColors.textMuted, size: 16),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () async {
+                        final confirmed =
+                            await _showDeleteConfirmation(transaction);
+                        if (confirmed) vm.deleteTransaction(transaction.id);
+                      },
+                      child: const Icon(Icons.delete_outline,
+                          color: Colors.red, size: 16),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),

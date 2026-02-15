@@ -10,7 +10,7 @@ class AppDatabase {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('arthokosh.db');
+    _database = await _initDB('orthokosh.db');
     return _database!;
   }
 

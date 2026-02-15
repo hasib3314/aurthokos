@@ -51,6 +51,46 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     await _loadData();
   }
 
+  Future<bool> _showDeleteConfirmation(TransactionModel t) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgMedium,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Delete Transaction?',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${t.title}"?\nThis action cannot be undone.',
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  void _openEditScreen(TransactionModel transaction) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddTransactionScreen(
+          existingTransaction: transaction,
+        ),
+      ),
+    ).then((_) => _loadData());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,7 +131,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => const AddTransactionScreen()),
+                  builder: (_) => AddTransactionScreen(initialType: widget.type)),
             ).then((_) => _loadData());
           },
           backgroundColor: Colors.transparent,
@@ -226,6 +266,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         return Dismissible(
           key: Key(t.id),
           direction: DismissDirection.endToStart,
+          confirmDismiss: (_) => _showDeleteConfirmation(t),
+          onDismissed: (_) => _deleteTransaction(t.id),
           background: Container(
             margin: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
@@ -236,11 +278,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             padding: const EdgeInsets.only(right: 20),
             child: const Icon(Icons.delete_outline, color: Colors.red),
           ),
-          onDismissed: (_) => _deleteTransaction(t.id),
           child: GlassmorphicCard(
             padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             borderRadius: 16,
+            onTap: () => _openEditScreen(t),
             child: Row(
               children: [
                 Container(
@@ -297,15 +339,32 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         fontSize: 14,
                       ),
                     ),
-                    if (t.note != null && t.note!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Icon(
-                          Icons.sticky_note_2_outlined,
-                          color: AppColors.textMuted,
-                          size: 14,
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () => _openEditScreen(t),
+                          child: const Icon(
+                            Icons.edit_outlined,
+                            color: AppColors.textMuted,
+                            size: 16,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () async {
+                            final confirmed = await _showDeleteConfirmation(t);
+                            if (confirmed) _deleteTransaction(t.id);
+                          },
+                          child: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                            size: 16,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ],

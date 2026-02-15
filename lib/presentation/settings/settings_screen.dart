@@ -294,43 +294,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAboutCard() {
-    return GlassmorphicCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: AppColors.goldAccentGradient,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Text(
-              '৳',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+    return Center(
+      child: GlassmorphicCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Image.asset(
+                'images/Orthokosh.png',
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            AppStrings.appName,
-            style: context.textTheme.headlineMedium?.copyWith(
-              color: AppColors.gold,
+            const SizedBox(height: 12),
+            Text(
+              AppStrings.appName,
+              style: context.textTheme.headlineMedium?.copyWith(
+                color: AppColors.gold,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'v1.0.0 • Personal Finance Manager',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Made with love in Bangladesh',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 11),
-          ),
-        ],
+            const SizedBox(height: 4),
+            const Text(
+              'v1.0.0 • Personal Finance Manager',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
+
+          ],
+        ),
       ),
     );
   }

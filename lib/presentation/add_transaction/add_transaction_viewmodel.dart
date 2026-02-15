@@ -9,7 +9,7 @@ class AddTransactionViewModel extends ChangeNotifier {
   final FinanceRepository _repository = FinanceRepository();
   final BalanceWarningService _warningService = BalanceWarningService();
 
-  TransactionType _type = TransactionType.earn;
+  late TransactionType _type;
   Currency _currency = Currency.bdt;
   LoanType _loanType = LoanType.taken;
   DateTime _selectedDate = DateTime.now();
@@ -17,6 +17,11 @@ class AddTransactionViewModel extends ChangeNotifier {
   DateTime? _targetDate;
   bool _isSaving = false;
 
+  // Edit mode
+  bool _isEditMode = false;
+  String? _editingId;
+
+  bool get isEditMode => _isEditMode;
   TransactionType get type => _type;
   Currency get currency => _currency;
   LoanType get loanType => _loanType;
@@ -31,6 +36,32 @@ class AddTransactionViewModel extends ChangeNotifier {
   final categoryController = TextEditingController();
   final personNameController = TextEditingController();
   final goalAmountController = TextEditingController();
+
+  AddTransactionViewModel({
+    TransactionType initialType = TransactionType.earn,
+    TransactionModel? existingTransaction,
+  }) {
+    if (existingTransaction != null) {
+      _isEditMode = true;
+      _editingId = existingTransaction.id;
+      _type = existingTransaction.type;
+      _currency = existingTransaction.currency;
+      _selectedDate = existingTransaction.date;
+      _loanType = existingTransaction.loanType ?? LoanType.taken;
+      _dueDate = existingTransaction.dueDate;
+      _targetDate = existingTransaction.targetDate;
+
+      titleController.text = existingTransaction.title;
+      amountController.text = existingTransaction.amount.toString();
+      categoryController.text = existingTransaction.category;
+      noteController.text = existingTransaction.note ?? '';
+      personNameController.text = existingTransaction.personName ?? '';
+      goalAmountController.text =
+          existingTransaction.goalAmount?.toString() ?? '';
+    } else {
+      _type = initialType;
+    }
+  }
 
   void setType(TransactionType type) {
     _type = type;
@@ -67,8 +98,11 @@ class AddTransactionViewModel extends ChangeNotifier {
     if (amountController.text.trim().isEmpty) return 'Please enter an amount';
     final amount = double.tryParse(amountController.text.trim());
     if (amount == null || amount <= 0) return 'Please enter a valid amount';
-    if (categoryController.text.trim().isEmpty) return 'Please enter a category';
-    if (_type == TransactionType.loan && personNameController.text.trim().isEmpty) {
+    if (categoryController.text.trim().isEmpty) {
+      return 'Please enter a category';
+    }
+    if (_type == TransactionType.loan &&
+        personNameController.text.trim().isEmpty) {
       return 'Please enter the person name for loan';
     }
     return null;
@@ -80,7 +114,7 @@ class AddTransactionViewModel extends ChangeNotifier {
 
     try {
       final transaction = TransactionModel(
-        id: const Uuid().v4(),
+        id: _isEditMode ? _editingId! : const Uuid().v4(),
         title: titleController.text.trim(),
         amount: double.parse(amountController.text.trim()),
         currency: _currency,
@@ -102,7 +136,11 @@ class AddTransactionViewModel extends ChangeNotifier {
         targetDate: _type == TransactionType.savings ? _targetDate : null,
       );
 
-      await _repository.addTransaction(transaction);
+      if (_isEditMode) {
+        await _repository.updateTransaction(transaction);
+      } else {
+        await _repository.addTransaction(transaction);
+      }
 
       // Check balance warning after adding expense/loan
       if (_type == TransactionType.expense || _type == TransactionType.loan) {

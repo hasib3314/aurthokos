@@ -27,11 +27,11 @@ void main() async {
   // Initialize notifications
   await NotificationService().initialize();
 
-  runApp(const ArthokoshApp());
+  runApp(const OrthokoshApp());
 }
 
-class ArthokoshApp extends StatelessWidget {
-  const ArthokoshApp({super.key});
+class OrthokoshApp extends StatelessWidget {
+  const OrthokoshApp({super.key});
 
   @override
   Widget build(BuildContext context) {

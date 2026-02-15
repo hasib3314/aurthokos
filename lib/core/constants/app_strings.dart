@@ -1,8 +1,8 @@
 class AppStrings {
   AppStrings._();
 
-  static const String appName = 'অর্থকোষ';
-  static const String appNameEn = 'Arthokosh';
+  static const String appName = 'Orthokosh';
+  static const String appNameEn = 'Orthokosh';
   static const String appTagline = 'Your Personal Finance Manager';
 
   // Categories
