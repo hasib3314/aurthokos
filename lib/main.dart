@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_strings.dart';
+import 'data/repositories/auth_repository.dart';
+import 'presentation/auth/login_screen.dart';
 import 'presentation/dashboard/dashboard_screen.dart';
 import 'presentation/dashboard/dashboard_viewmodel.dart';
 import 'services/notification_service.dart';
@@ -10,13 +12,11 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style for immersive dark theme
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -24,14 +24,18 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  // Initialize notifications
   await NotificationService().initialize();
 
-  runApp(const OrthokoshApp());
+  // Check auth session
+  final isLoggedIn = await AuthRepository().isLoggedIn();
+
+  runApp(OrthokoshApp(isLoggedIn: isLoggedIn));
 }
 
 class OrthokoshApp extends StatelessWidget {
-  const OrthokoshApp({super.key});
+  final bool isLoggedIn;
+
+  const OrthokoshApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +47,7 @@ class OrthokoshApp extends StatelessWidget {
         title: AppStrings.appNameEn,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
-        home: const DashboardScreen(),
+        home: isLoggedIn ? const DashboardScreen() : const LoginScreen(),
       ),
     );
   }

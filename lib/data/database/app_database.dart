@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/transaction_model.dart';
+import '../models/user_model.dart';
 
 class AppDatabase {
   static Database? _database;
@@ -20,12 +21,23 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
   Future<void> _createDB(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        passwordHash TEXT NOT NULL,
+        createdAt INTEGER NOT NULL
+      )
+    ''');
+
     await db.execute('''
       CREATE TABLE transactions (
         id TEXT PRIMARY KEY,
@@ -61,6 +73,54 @@ class AppDatabase {
       'lowBalanceThreshold': 1000.0,
       'enableNotifications': 1,
     });
+  }
+
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
+          passwordHash TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+        )
+      ''');
+    }
+  }
+
+  // === User CRUD ===
+
+  Future<int> insertUser(UserModel user) async {
+    final db = await database;
+    return await db.insert('users', user.toMap());
+  }
+
+  Future<UserModel?> getUserByEmail(String email) async {
+    final db = await database;
+    final maps = await db.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+    if (maps.isEmpty) return null;
+    return UserModel.fromMap(maps.first);
+  }
+
+  Future<UserModel?> getUserById(String id) async {
+    final db = await database;
+    final maps = await db.query(
+      'users',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isEmpty) return null;
+    return UserModel.fromMap(maps.first);
+  }
+
+  Future<bool> emailExists(String email) async {
+    final user = await getUserByEmail(email);
+    return user != null;
   }
 
   // === Transaction CRUD ===

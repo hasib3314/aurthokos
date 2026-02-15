@@ -5,7 +5,9 @@ import '../../core/constants/app_strings.dart';
 import '../../core/utils/currency_converter.dart';
 import '../../core/utils/extensions.dart';
 import '../../core/widgets/glassmorphic_card.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/finance_repository.dart';
+import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -96,6 +98,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _buildNotificationToggle(),
                             const SizedBox(height: 40),
                             _buildSaveButton(),
+                            const SizedBox(height: 24),
+                            _buildLogoutButton(),
                             const SizedBox(height: 24),
                             _buildAboutCard(),
                           ],
@@ -288,6 +292,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: const Text(
           'Save Settings',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: () async {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.bgMedium,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: const Text('Logout?',
+                  style: TextStyle(color: AppColors.textPrimary)),
+              content: const Text(
+                'Are you sure you want to logout?',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel',
+                      style: TextStyle(color: AppColors.textMuted)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child:
+                      const Text('Logout', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+          );
+          if (confirmed == true && mounted) {
+            await AuthRepository().logout();
+            if (mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (_) => false,
+              );
+            }
+          }
+        },
+        icon: const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
+        label: const Text(
+          'Logout',
+          style: TextStyle(
+              color: Colors.red, fontWeight: FontWeight.w600, fontSize: 15),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: Colors.red.withValues(alpha: 0.4)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
     );
